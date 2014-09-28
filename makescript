@@ -1,4 +1,0 @@
-rm -f make.incl
-./config
-make
-
