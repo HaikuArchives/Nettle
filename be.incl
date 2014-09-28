@@ -1,10 +1,10 @@
 CPP=c++
 CC=cc
 CCFLAGS= -g $(INCLUDE)
-CPPFLAGS= -g $(INCLUDE)
+CPPFLAGS= -g $(INCLUDE) -fpermissive
 PLATOBJS=NLBeOSImpl.o
-LINKLIBS=-lnettle -lnet 
-AR=ar r
+LINKLIBS=-lnettle -lnetwork
+AR=mkdir -p ../lib && ar r
 
 .SUFFIXES: .cpp .o .c 
 

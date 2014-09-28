@@ -1,15 +1,1 @@
-CPP=c++
-CC=cc
-CCFLAGS= -g $(INCLUDE)
-CPPFLAGS= -g $(INCLUDE)
-PLATOBJS=NLBeOSImpl.o
-LINKLIBS=-lnettle -lnet 
-AR=ar r
-
-.SUFFIXES: .cpp .o .c 
-
-.cpp.o:
-	$(CPP)  -c $(CPPFLAGS) $<
-
-.c.o:
-	$(CC)  -c $(CCFLAGS) $<
+be.incl

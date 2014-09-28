@@ -11,6 +11,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 #endif
+#if defined(__HAIKU__)
+#include <sys/select.h>
+#endif
 
 extern "C" int closesocket(int fd);  // for portability
 

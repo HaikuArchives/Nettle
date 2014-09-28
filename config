@@ -6,6 +6,7 @@ HOST=`uname`
  
 case $HOST in
  	*BeOS*) ln -s be.incl make.incl;;
+ 	*Haiku*) ln -s be.incl make.incl;;
  	*Linux*) ln -s linux.incl make.incl;;
  	*IRIX*) ln -s irix.incl make.incl;;
  	*SunOS*) if(whence CC)
