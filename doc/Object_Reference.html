@@ -1,0 +1,655 @@
+<HTML><HEAD> 
+<TITLE>Nettle Object Reference</TITLE> 
+</HEAD> 
+<CENTER><H1>Nettle Networking Objects Library</H1>
+<H3><P>Copyright 1997-1998 by <A HREF="mailto:hberkey@pacbell.net">Howard Berkey</A></P></H3>
+</CENTER>
+
+
+<H3>Table of Contents:
+<P><A HREF="#intro">Intro</A></P></H3>
+<P><H3><A HREF="#cxxnettle">C++ Nettle</A></H3>
+<PRE><A HREF="#NLAddress">class NLAddress</A>
+<A HREF="#NLEndpoint">class NLEndpoint</A>
+<A HREF="#NLPacket">class NLPacket</A>
+<A HREF="#NLException">class NLException</A>
+</PRE></P>
+
+<H2><A NAME="intro">Intro</A></H2>
+
+<P>This is a class by class breakdown of the Nettle library.  Each class
+is described with a class description, a description of any data types
+defined, a description of public data members, a description of public
+member functions, and some short usage examples.  The examples are stripped
+to the minimum to illustrate the classes in question, and are lacking in
+error handling, etc.  See the example code provided in ./examples for
+more complete example code.</P>
+
+
+<H1>
+<A NAME="cxxnettle"> Nettle C++ interface</A>
+</H1>
+<P> 
+This section describes the Nettle C++ interface.  
+Nettle is designed to work in an environment
+where the consumer of the API is comfortable using blocking I/O
+with exception-based error handling.
+</P><H2>
+<A NAME="NLAddress">class NLAddress</A>
+</H2>
+
+<P>NLAddress is a class that encapsulates network address representation.
+It provides various ways to get and set a network address, converting
+to or from the chosen representation into a generic internal one.</P>
+
+<P>NLAddress is also a repository for useful network addressing constants.</P>
+
+<B>Public Defined Types:</B>
+<PRE>
+<code><b>
+	 enum {[...]} NLAddress::e_addr;
+</b></code>
+NLAddress::e_addr is an enumeration of standard specialized addresses, 
+such as NLAddress::addr_any = INADDR_ANY.
+<code><b>
+	 enum {[...]} NLAddress::e_fam;	
+</b></code>
+NLAddress::e_fam is an enumeration of Internet address families.
+<code><b>
+	 enum {[...]} NLAddress::e_tcpports;
+</b></code>
+NLAddress::e_tcpports is an enumeration of the well-known tcp ports, 
+such as NLAddress::tcpEcho = 7.
+<code><b>
+	 enum {[...]} NLAddress::e_udpports;
+</b></code>
+NLAddress::e_udpports is an enumeration of the well-known udp ports, 
+such as NLAddress::udpSnmp = 161.
+<code><b>
+	 enum {[...]} NLAddress::e_icmptypes;
+</b></code>
+NLAddress::e_icmptypes is an enumeration of the icmp types, 
+such as NLAddress::icmpEchoRequest = 8.
+<code><b>
+	 enum {[...]} NLAddress::e_sizes;
+</b></code>
+NLAddress::e_sizes is an enumeration of useful size values, such as
+NLAddress::maxhostnamelen.
+</PRE>
+<B>Public Member Functions:</B>
+<PRE>
+	NLAddress::NLAddress(const char *hostname = 0, unsigned short port = 0);
+	NLAddress::NLAddress(struct sockaddr_in &sa);
+	NLAddress::NLAddress(in_addr addr, int port = 0);
+
+The various constructors.  All convert the passed-in data to an internal
+internet address representation.  The first throws an NLException if
+host name lookup fails for the specified host.  The char * may 
+be in either dotted-decimal or host name format.  If the hostname is 
+left NULL in the first one, NLAddress::addr_any is assumed.
+	
+	void NLAddress::set(const char *hostname = 0, unsigned short port = 0);
+	void NLAddress::set(struct sockaddr_in &sa);
+	void NLAddress::set(in_addr addr, int port = 0);
+	void NLAddress::set(NLAddress::e_addr addr=NLAddress::addr_any, int port = 0);
+
+NLAddress::set() sets the internal address representation to refer to the
+internet address specified by the passed-in data.  The first throws an 
+NLException if host name lookup fails for the passed-in host.  The char * 
+ may be in either dotted-decimal or host name format.  If the 
+hostname is left NULL in the first one, NLAddress::addr_any is assumed.
+		
+	void NLAddress::get(char *hostname = 0, unsigned short *port = 0) const;
+	void NLAddress::get(struct sockaddr_in &sa) const;
+	void NLAddress::get(in_addr &addr, unsigned short *port = 0) const;
+
+NLAddress::get() converts the internal internet address representation into 
+the specified form and returns it by filling in the passed-in parameters.
+In the first (char *) version of this call, it is assumed that the user has
+passed in a char array large enough to hold the address.  A good size to use 
+for such an array would be NLAddress::maxhostnamelen + 1.
+</PRE>
+<P><B>Usage examples:</B></P>
+
+<P>The first example sets the NLAddress to point to the FTP port on Be's
+ftp server, ftp.be.com:</P>
+<code><b><pre>
+void ftp_be()
+{
+	NLAddress addr("ftp.be.com" , NLAddress::tcpFtp);
+	[...]
+}
+</pre></b></code>
+
+<P>The next example uses an NLEndpoint (described below) to bounce a 
+UDP packet off of Sun Microsystems' web site:</P>
+<code><b><pre>
+void ping_sun()
+{
+	NLAddress addr;
+	char *s = "Hello!!!";
+	NLEndpoint comm(NLEndpoint::datagram);
+	
+	addr.set("www.sun.com", NLAddress::udpEcho);
+	comm.sendto((void *) s, strlen(s), addr);
+}
+</pre></b></code>
+
+<P>The last example gets the address of a NLEndpoint which has been
+bound to a random port on the machine and prints out the info:</P>
+
+
+<pre>
+void bind_and_print()
+{
+	NLEndpoint comm(NLEndpoint::datagram);
+	NLAddress addr;
+	char addrstr[NLAddress::maxhostnamelen];
+	unsigned short port;
+	
+	comm.bind();
+	addr = comm.getAddr();
+	addr.get(addrstr, &port)
+}
+</pre>
+
+<H2>
+<A NAME="NLEndpoint">class NLEndpoint</A>
+</H2>
+
+<P>NLEndpoint is an object that implements a networking endpoint abstraction.
+You can think of it as an object-oriented socket.  NLEndpoint provides 
+various ways to send and receive data, establish network connections,
+bind to local addresses, and listen for and accept new connections.
+NLEndpoint member functions map fairly orthogonally to many standard
+BSD sockets calls.</P>
+
+<P>NLEndpoint also defines some useful types and constants.</P>
+
+<B>Public Defined Types:</B>
+<PRE>
+<code><b>
+	 enum {[...]} NLEndpoint::e_type;
+</b></code>
+NLEndpoint::e_type is an enumeration specifying a type of networking
+protocol, for example NLEndpoint::stream for a connected, "reliable" 
+stream protocol (TCP) and NLEndpoint::datagram for a connectionless,
+"nonreliable" datagram protocol (UDP).
+<code><b>
+	 enum {[...]} NLEndpoint::e_options;
+</b></code>	
+NLEndpoint::e_options is an enumeration of valid socket options for use
+in our data communications, for example NLEndpoint::nonblockopt for
+non-blocking I/O.
+<code><b>
+	 enum {[...]} NLEndpoint::e_optlevel;
+</b></code>	
+NLEndpoint::e_optlevel is an enumeration of valid option levels, such as
+NLEndpoint::sol_socket.
+<code><b>
+	 enum {[...]} NLEndpoint::e_flags;
+</b></code>	
+NLEndpoint::e_flags is an enumeration of valid flags for use sending and
+receiving data, such as NLEndpoint::msg_oob for out-of-band data.
+<code><b>
+	 enum {[...]} NLEndpoint::e_proto;
+</b></code>
+NLEndpoint::e_proto is another enumeration of protocols, such as
+NLEndpoint::proto_icmp.
+</PRE>
+<B>Public Member Functions:</B>
+
+<P><B>Important note: all calls in this object with a void return type
+will either succeed or throw an NLException on failure.</B></P>
+<PRE>
+<code><b>
+	NLEndpoint::NLEndpoint(NLEndpoint::e_type proto = NLEndpoint::stream);
+	virtual NLEndpoint::~NLEndpoint();
+</b></code>
+The constructor and destructor.  The constructor takes an optional argument
+indicating whether to use a a connected, "reliable" stream protocol (TCP) 
+or a connectionless, "nonreliable" datagram protocol (UDP).  The default 
+is to use TCP.
+<code><b>	
+	void NLEndpoint::setProtocol(NLEndpoint::e_type);
+</b></code>
+NLEndpoint::setProtocol() allows the protocol type to be changed from stream
+to datagram and vice-versa.  The current connection (if any) is closed and 
+the NLEndpoint's state is reset.
+<code><b>	
+	int NLEndpoint::setOption(NLEndpoint::e_options opt, NLEndpoint::e_optlevel lev, const void *data, unsigned int datasize);
+	int NLEndpoint::setNonBlock(bool on = true);
+	int NLEndpoint::setReuseAddr(bool on = true);
+</b></code>
+These functions allow various options to be set on our data communications.
+The first allows any option to be set;  the latter two turn nonblocking
+I/O on or off, and toggle reuseaddr respectively.  The default is for 
+*blocking* I/O and reuseaddr to be OFF.
+<code><b>
+	inline const NLAddress &NLEndpoint::getAddr();
+</b></code>
+Returns a NLAddress corresponding to the internet address used by this 
+NLEndpoint.
+<code><b>
+	inline const NLAddress &NLEndpoint::getPeer();
+</b></code>
+Returns a NLAddress corresponding to the internet address of the remote
+peer we are connected to, if connected.  If not connected (i.e. currently 
+unconnected and using NLEndpoint::stream, or if using NLEndpoint::datagram
+at all), throws an NLException.
+<code><b>
+	inline int NLEndpoint::getSocket();
+</b></code>
+Returns the actual socket file descriptor used by this NLEndpoint.  This
+value is not necessarily constant over the life of an NLEndpoint.
+<code><b>	
+	virtual void NLEndpoint::close();
+</b></code>
+Close the current NLEndpoint, terminating any existing connection (if any)
+and discarding unread data.
+<code><b>	
+	virtual void NLEndpoint::bind(const NLAddress &addr);
+	virtual void NLEndpoint::bind(int port = 0);
+</b></code>
+Bind this NLEndpoint to a local address.  Calling bind() without specifying
+a NLAddress ot port number binds to a random local port.  The actual port
+bound to can be determined by a subsequent call to NLEndpoint::getAddr().
+<code><b>	
+	virtual void  NLEndpoint::connect(const NLAddress &addr);
+	virtual void  NLEndpoint::connect(const char *hostname, int port);
+
+</b></code>
+Connect this NLEndpoint to a remote address.  The first version takes
+an NLAddress already set to the remote address as an argument;  the other
+one internally constructs an NLAddress from the passed-in hostname and port
+number, and connect.
+
+For NLEndpoints using protocol type NLEndpoint::stream, an actual connection 
+is made.  Using NLEndpoint::datagram, the call caches the remote address so
+that the send() and recv() member functions (see below) may be used rather
+than sendto() and recvfrom(), as usually required of datagram NLEndpoints.
+<code><b>
+	virtual NLEndpoint *NLEndpoint::accept(long timeout = -1);
+</b></code>
+Accepts new connections to a bound NLEndpoint::stream protocol NLEndpoint.
+Blocks for timeout milleseconds (defaults to forever) waiting for 
+new connections.  Returns an NLEndpoint with the same characteristics
+as the one calling NLEndpoint::accept(), the new one representing the new 
+connection.  This returned NLEndpoint is ready for communication and 
+must be deleted at a later time using delete.
+
+Throws an NLException if interrupted or on failure for any reason.
+Returns 0 if it timed out before a new connection request is received.
+<code><b>
+	virtual void NLEndpoint::listen(int backlog = 5);
+</b></code>	
+Specify the number of pending incoming connection attemps to queue.
+This is the number of connection requests that will be allowed in between
+calls to NLEndpoint::accept().  When this number is exceeded, new 
+connection attempts are refused until NLEndpoint::accept() is called.
+<code><b>
+	inline void NLEndpoint::throwOnSendError(bool t = true);
+	inline void NLEndpoint::throwOnRecvError(bool t = true);
+	inline int NLEndpoint::getLastError();
+	inline char *NLEndpoint::getLastErrorStr();
+</b></code>
+Error dispatch control functions for the send and recv calls (see below).
+These functions allow you to select how errors that occur in send and recv
+(and sendto and recvfrom) are handled.  By default, NLExceptions are thrown 
+when these functions fail.  However, this is not the nicest behavior when
+using non-blocking sockets, because the calls will often fail and set errno 
+to EWOULDBLOCK because the call would block.  To avoid this problem, the 
+functions NLEndpoint::throwOnSendError() and NLEndpoint::throwOnRecvError()
+allow you to cause the send and recv functions to return -1 rather than
+throwing an exception on failure.  NLEndpoint::throwOnSendError(false)
+causes exceptions NOT to be thrown on send and sendto failure.  Likewise 
+for NLEndpoint::throwOnRecvError(false).  Passing true in either function
+restores the default behavior.
+
+When throwing is disabled for those calls, the send/recv family return -1 
+on failure.  When that happens, NLEndpoint::getLastError() will return the 
+integer error code (set by the OS) for the last send/recv error.  Likewise,
+NLEndpoint::getLastErrorStr() returns a string describing the error.
+<code><b>
+	virtual size_t NLEndpoint::send(const void *buf, size_t size, int flags = 0);
+	virtual size_t NLEndpoint::send(NLPacket &pack, int flags = 0);
+</b></code>
+Sends data to the remote end of the connection.  If not connected, fails. 
+If using NLEndpoint::datagram protocol, fails unless NLEndpoint::connect()
+has been called, which caches the address we are sending to.  The first 
+version sends an arbitrary buffer of size size; the second sends the 
+contents of a NLPacket(see below). Both return the number of bytes actually 
+sent, and throw a NLException on failure.
+<code><b>
+	virtual size_t NLEndpoint::sendto(const void *buf, size_t size, const NLAddress &to, int flags = 0);
+	virtual size_t NLEndpoint::sendto(NLPacket &pack, const NLAddress &to, int flags = 0);
+</b></code>
+Sends data to the address specified by the passed-in NLAddress object.
+Fails if not using NLEndpoint::datagram protocol.  The first version sends
+an arbitrary buffer of size size; the second sends the contents of a 
+NLPacket(see below).  Both return the number of bytes actually sent, 
+and (by default) throw a NLException on failure.
+<code><b>	
+	inline void NLEndpoint::setRecvTimeout(long l);
+</b></code>
+Sets an optional timeout (in milleseconds) for calls to NLEndpoint::recv()
+and NLEndpoint::recvfrom().  Causes these calls to time out after the specified
+number of milleseconds when in blocking mode (the default).
+<code><b>
+	virtual size_t NLEndpoint::recv(void *buf, size_t size, int flags = 0);
+	virtual size_t NLEndpoint::recv(NLPacket &pack, size_t size, int flags = 0);
+</b></code>
+Receives data pending on the NLEndpoint's connection.  If in the default 
+blocking mode, blocks until data is available.  If in nonblocking mode, 
+returns immediately.  The first call receives into a preallocated buffer 
+of the specified size; the second call receives (at most) size bytes into 
+an NLPacket. The data is appended to the end of the NLPacket;  this allows
+an NLPacket to be used in a loop to buffer incoming data read in chunks 
+until a certain size is read.
+
+Both return the number of bytes actually received, and (by default) throw 
+a NLException on failure. A valid receive of size zero indicates that the 
+other end has closed the connection, and this NLEndpoint should be closed 
+via NLEndpoint::close(), or deleted.
+
+NLEndpoints using the NLEndpoint::datagram protocol may use these calls 
+if NLEndpoint::connect() has been called, otherwise they must use the
+NLEndpoint::recvfrom calls.
+<code><b>
+	virtual size_t NLEndpoint::recvfrom(void *buf, size_t size, NLAddress &from, int flags = 0);
+	virtual size_t NLEndpoint::recvfrom(NLPacket &pack, size_t size, NLAddress &from, int flags = 0);
+</b></code>
+These are the datagram analogues of recv, above.  They receive datagrams from an
+arbitrary source and fill in the passed-in NLAddress with the address from
+whence the datagram came.  As usual, both return the actual number of bytes 
+read.  In the NLPacket version, The data is appended to the end of the 
+NLPacket;  this allows an NLPacket to be used in a loop to buffer incoming 
+data read in chunks until a certain amount is read.
+
+<code><b>	
+	virtual bool NLEndpoint::isDataPending(long timeout = 0);
+</b></code>
+Returns true if there is data waiting to be received on this NLEndpoint.
+Will block for timeout milleseconds if specified, waiting for data.
+<code><b>
+	virtual NLEndpoint *NLEndpoint::clone(NLEndpoint *);
+</b></code>
+Produces a copy of this NLEndpoint and returns it.
+</PRE>
+<P><B>Usage examples:</B></P>
+<P>The following program implements a simple UDP echo daemon.  This code 
+binds a datagram NLEndpoint to the UDP Echo well-known port (referenced 
+by NLAddress::udpEcho), then repeatedly loops, blocking until a datagram
+arrives, when it sends the datagram back to the sender, prints a log 
+message, and waits for the next datagram.</P>
+
+<code><b><pre>
+int main(int, char**)
+{
+	char buf[8192], addrstr[128];
+	NLEndpoint comm(NLEndpoint::datagram);
+	NLAddress addr;	
+	int rc;
+
+	comm.bind(NLAddress::udpEcho);
+	
+	while(1)
+	{
+		rc = comm.recvfrom(buf, sizeof(buf), addr);
+		comm.sendto(buf, rc, addr);
+		addr.get(addrstr);
+	}
+
+	return -1;	
+}
+</pre></b></code>
+<P>
+The next example is a simple client to test the above daemon with.
+It takes the a command-line argument as the host name to send 
+datagrams to, sends a datagram, then receives the return datagram.
+</P>
+<code><b><pre>
+int main(int argc, char**argv)
+{
+	NLEndpoint comm(NLEndpoint::datagram);
+	NLAddress addr;
+	char *sendstr = "Hello!!!";
+	char buf[1024];
+	int rc;
+	
+	addr.set(argv[1], NLAddress::udpEcho);
+	
+	rc = comm.sendto(sendstr, strlen(sendstr) + 1, addr);
+	comm.recvfrom(buf, rc, addr);	
+	return 0;
+}
+</pre></b></code>
+<P>The next example is a "grumpy" server, which accepts TCP connections
+and tells the connectee to go away:
+</P>
+<code><b><pre>
+int main(int, char**)
+{
+	char addrstr[128], *goaway = "Go away!";
+	NLEndpoint comm, *rep;
+	NLAddress addr;	
+	unsigned short port;
+	
+	comm.bind();
+	comm.listen();		
+	addr = comm.getAddr();
+	addr.get(addrstr, &port);
+
+	while(1)
+	{
+		rep = comm.accept();
+		rep->send(goaway, strlen(goaway));
+		delete rep;
+	}
+	
+	return -1;	
+}
+
+</pre></b></code>
+<H2>
+<A NAME="NLPacket">class NLPacket</A>
+</H2>
+
+<P>
+NLPacket is a dynamic buffer useful for storing data to be sent across
+the network.  Data is inserted into and removed from the object using
+one of the many insert and remove member functions.  Access to the raw
+stored data is possible.  The NLEndpoint class has a send and recv 
+function for use with NLPacket.  Network byte order conversion is done
+automatically for all appropriate types in the insert and remove functions
+for that type.
+</P>
+<B>Public Member Functions:</B>
+<PRE>
+<code><b>
+
+	NLPacket::NLPacket(size_t size = 0);
+	NLPacket::~NLPacket();
+</b></code>
+The Constructor and destructor.  The ctor takes an optional size argument
+which specifies a size to initially allocate for the internal buffer.  This
+is useful for effeciency when the total data size is known or can be 
+estimated before inserting individual data.
+<code><b>
+	void NLPacket::insert(char);
+	void NLPacket::insert(unsigned char);
+	void NLPacket::insert(short);
+	void NLPacket::insert(unsigned short);
+	void NLPacket::insert(int);
+	void NLPacket::insert(unsigned int);
+	void NLPacket::insert(long);
+	void NLPacket::insert(unsigned long);
+	void NLPacket::insert(float);
+	void NLPacket::insert(double);
+	void NLPacket::insert(const char *);
+	void NLPacket::insert(const void *, size_t);
+</b></code>
+Data insertion member functions.  Data is inserted at the end of the internal 
+dynamic buffer.  For the short, int, and long versions (and unsigned of 
+each as well) byte order conversion is performed.  Ints are promoted to 
+longs internally.  The terminating null of all strings are inserted as 
+well.  The last version of this function inserts a generic data buffer of 
+specified size. 
+
+All versions of NLPacket::insert() throw an NLException if allocation of
+the internal buffer fails in new().
+<code><b>
+	void NLPacket::remove(char &);
+	void NLPacket::remove(unsigned char &);
+	void NLPacket::remove(short &);
+	void NLPacket::remove(unsigned short &);
+	void NLPacket::remove(int &);
+	void NLPacket::remove(unsigned int &);
+	void NLPacket::remove(long &);
+	void NLPacket::remove(unsigned long &);
+	void NLPacket::remove(float &);
+	void NLPacket::remove(double &);
+</b></code>
+Data extraction member functions.  Data is extracted from the start of the 
+internal dynamic buffer.  For the short, int, and long versions (and 
+unsigned of each as well) byte order conversion is performed.  
+<code><b>	
+	void NLPacket::remove(char *, size_t);
+	void NLPacket::remove(void *, size_t);
+</b></code>	
+Extraction of strings and generic data.  It is assumed that preallocated memory of
+the specified size is passed to 
+these functions.  For the 
+char * version, data is extracted until a terminating NULL *or* the specified
+size has been extracted.  For the void * version, data of the specified size 
+is extracted.
+
+All versions of NLPacket::remove() throw an NLException if extraction is 
+attempted past the logical end of the NLPacket.
+
+<code><b>
+	inline unsigned char *NLPacket::getData();
+</b></code>	
+getData() returns a pointer to the internal data buffer.  This is useful
+when wanting to pass the data to a function expecting a pointer to data.
+<code><b>	
+	inline size_t NLPacket::getSize();
+</b></code>
+getSize() returns the size of the NLPacket's data, in bytes.
+<code><b>
+	inline size_t NLPacket::getBytesRemaining();
+</b></code>
+getBytesRemaining() returns the bytes remaining in the NLPacket available
+to be extracted via NLPacket::remove().
+</PRE>
+<P><B>Usage examples:</B></P>
+<P>In this example, a hypothetical client sends some data to a server.  Both
+sides use an NLPacket for holding the data.  In the example, it is assumed 
+that the client/server protocol is for a length field of 4 bytes, a 2 byte
+request id, and then the request data to be sent.
+</P>
+<PRE>
+<code><b>
+Shared in a .h:
+
+const short kMyRequestId = 1;
+
+Client side:
+[...snip init and connection code...]
+
+void ClientObj::sendMyRequest(NLEndpoint &comm, long messid, const char *message)
+{
+	NLPacket pack;
+	long size;
+	
+	//
+	// Insert data into the packet
+	//
+	pack.insert(kMyRequestId);
+	pack.insert(messid);
+	pack.insert(message);
+	
+	size = pack.getSize();
+	
+	comm.send(&size, sizeof(size));
+	comm.send(pack);	
+}
+
+Server side:
+[... ditto snip ...]
+
+void SrvObj::handlePacket(NLEndpoint &comm)
+{
+	NLPacket pack;
+	long size;
+	short req_id;
+	//
+	// read the size, then the packet
+	//
+	comm.recv(&size, sizeof(size));
+	comm.recv(pack, size);
+	
+	pack.remove(req_id);
+	
+	switch(req_id)
+	{
+		[...]
+		case kMyRequestId:
+			handleMyRequest(pack);
+			break;
+	}
+}
+
+void SrvObj::handleMyRequest(NLPacket &pack)
+{
+	char msg[1024];
+	
+	long msgid;
+	
+	pack.remove(msgid);
+	pack.remove(msg, sizeof(msg));
+	
+	if(msgid == . . .)
+	[...]	
+}
+</b></code>
+</PRE>
+
+<H2>
+<A NAME="NLException">class NLException</A>
+</H2>
+
+<P>
+NLException is the exception class thrown by all classes in this library.
+As it is simple, it is shown here in its entirety.
+</P>
+<pre>
+<code><b>
+class NLException
+{
+public:
+	char m_file[255];
+	int m_line;
+	char m_where[255];
+	char m_what[255];
+	void *m_arg;
+	
+	inline NLException(char *file, int line, char *where, char *what, void *arg);
+	inline void print(char *s);
+};
+</b></code>
+
+m_file is the name of the file where the was thrown.  m_line is the 
+line number.  m_where contains the name of the object and member function
+throwing the exception.  m_what is the reason the exception was thrown. 
+m_arg is an optional argument, usually set to the object that threw the 
+exception.
+
+	NLException::print(char *s);
+
+This function inserts a human-readable version of the exception into 
+the passed-in string.  
+
+There are several macros to assist in easily throwing this exception 
+yourself.  See the header file for details.
+</pre>

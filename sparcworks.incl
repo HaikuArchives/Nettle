@@ -1,0 +1,17 @@
+CPP=CC
+CC=cc
+CCFLAGS= -g -D_REENTRANT -DSUNCC -DSOLARIS $(INCLUDE)
+CPPFLAGS= -g -D_REENTRANT DSUNCC -DSOLARIS $(INCLUDE)
+LINKLIBS= -lnettle -lnsl -lsocket 
+PLATOBJS= NLSolarisImpl.o 
+AR=CC -xar -o 
+
+.SUFFIXES: .cpp .o .c 
+
+.cpp.o:
+	$(CPP)  -c $(CPPFLAGS) $<
+
+.c.o:
+	$(CC)  -c $(CCFLAGS) $<
+	
+	

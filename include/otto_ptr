@@ -1,0 +1,42 @@
+//
+// otto_ptr
+// auto_array_ptr clone for lame std libs like g++ and SPARCWorks
+//
+
+#ifndef H_OTTO_PTR
+#define H_OTTO_PTR
+
+template<class T>
+class otto_ptr {
+public:
+        otto_ptr(T *p = 0): pointee(p) {}
+
+        ~otto_ptr() {if(pointee != 0) delete[] pointee;} 
+
+
+        T& operator*() const { return *pointee; }
+
+
+        T* operator->() const { return pointee; }
+
+
+        T* get() const { return pointee; }
+
+
+        T* release()
+        {
+                T *oldPointee = pointee;
+                pointee = 0;
+                return oldPointee;
+        } 
+
+
+        void reset(T *p = 0) { delete[] pointee; pointee = p; }
+
+
+private:
+        T *pointee;
+};
+
+
+#endif

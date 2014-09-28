@@ -1,0 +1,119 @@
+<HTML><HEAD> 
+<TITLE>Nettle Readme</TITLE> 
+</HEAD> 
+<CENTER><H1>Nettle Networking Objects Library</H1>
+<H3><P>Copyright 1997-1998 by <A HREF="mailto:hberkey@pacbell.net">Howard Berkey</A></P></H3>
+</CENTER>
+
+<P><PRE>
+Table of Contents:
+1. <A HREF="#abstract">Abstract</A>
+2. <A HREF="#license">License</A>
+3. <A HREF="#features">Upcoming Features</A>
+4. <A HREF="#comments">Comments</A>
+5. <A HREF="#contributors">Contributors</A>
+6. <A HREF="#release">Release Notes</A>
+</PRE></P>
+
+
+<B><H3><A NAME="abstract">1. Abstract</A></H3></B>
+
+
+<P>Nettle is an object oriented abstraction over network socket communications.  
+It is a portable library based on the BSD sockets interface.  Nettle is primarily
+being developed under BeOS (PR) and Solaris (2.5.1), but it should be portable to 
+other operating systems as well as long as a reasonably complete BSD sockets interface 
+exists.  Since this includes all popular OS's I'm aware of (except the MacOS) this 
+library should work just about anywhere.</P>
+
+<P>See the <A HREF="./Object_Reference.html">Object_Reference</A> 
+for information on using the library.  To build the library, either run the makescript 
+in the top level directory, or (for now) run "config" yourself and type make in the top level directory.
+Solaris users, note that the config script will try to detect SPARCWorks CC and configure for it
+if found; otherwise it will configure for g++.  If you are a SPARCWorks user but wish to build using 
+the gnu compiler, you will have to link make.incl to solaris-gcc.incl by hand.</P>
+
+<B><H3><A NAME="license">2. License</A></H3></B>
+
+<P>Nettle may be freely distributed provided the entire original unmodified source
+(including this file) is included in the distribution.  Nettle may be used with
+no restriction in both commercial and non-commercial products with the following 
+exceptions.  If source is provided, the entire Nettle source distribution must be 
+provided as well.  Additionally, the Nettle library and/or the library's author 
+must be credited in the final product's documentation, splash screen, about box, 
+or wherever appropriate. Finally, any modifications to the Nettle source must be so 
+documented and maintained separately from the unmodified source distribution.</P>
+
+<P>Neither I nor anyone else provide any warrantee or guarantee, either implied or 
+explicit, covering the source in this distribution.</P>
+
+<B><H3><A NAME="features">3. Upcoming Features</A></H3></B>
+
+<P><LI>Will distribute with imake or gnu autoconf to replace the cheezy 
+config system I use now.</LI></P>
+
+<P><LI>Java Nettle examples, a debug class, and NLSelector to multiplex NLEndpoints.</LI></P>
+
+<P><LI>A simple transaction protocol will be introduced; NLTransaction will contain a
+NLPacket and a NLPacketHeader object, and NLTransactionEnpoint will contain send 
+and recv of atomic transaction packets, providing packet boundary services.</LI> </P>
+
+<P><LI>I'm also planning on adding portable networking classes for use in multithreaded
+programs;  a NLActiveObject and NLReactor are forthcoming, based on (strangely 
+enough :-) the Active Object and Reactor design patterns.</LI></P>
+
+
+
+<B><H3><A NAME="comments">4. Comments</A></H3></B>
+
+<P>Everyone I know doing network programming has wanted a simple OO interface to 
+networking primitives.  There are some packages out there, and surprisingly the
+free ones like Gnanasekaran Swaminathan's socket++ and Douglas Schmidt's ACE are
+generally better than the commercial solutions (IMHO, at least).  Unfortunately,
+I still seem to spend significant time working around libraries such as those.
+Often they provide an interface that is (IMO) very high level and has a steeper
+learning curve (like ACE), is too dependant on specific language features (like
+socket++ and its reliance on the internal workings of the iostreams library), is 
+platform-specific, or in general tends to get away from the functionality I wanted 
+in the first place, which is a simple OO abstraction over networking.</P>
+
+<P>Hence, the core of Nettle will always be the simple NLEndpoint, NLAddress, NLPacket 
+and NLException classes.  More advanced features will be added, but those classes
+are all one will ever REALLY NEED to use in the library (even NLPacket is optional).</P>
+
+<P>One comment about multithreading issues.  After carefully considering things, I 
+decided to leave the core objects unsynchronized and require the users of these objects 
+to synchronize access to them.  I did this mainly because there are several different
+ways to synchronize access to some of them depending on what you want to do with them.
+I decided that the consumer of this API would know better how they wanted to synchonize
+the networking primitives than a general case could provide, particularly with respect
+to performance issues.</P>
+
+<B><H3><A NAME="contributors">5. Contributors</A></H3></B>
+<P><A HREF="mailto:hberkey@pacbell.net">Howard Berkey</A>, primary author</P>
+<P><A HREF="mailto:ctate@world.std.com">Christopher Tate</A>, SPARCWorks 4.2/ospace port and code reviewer extraordinaire</P>
+<P><A HREF="mailto:wolf@bescape.com">Mark Martin</A>, Linux/g++ port and support</P>
+
+<B><H3><A NAME="release">6. Release Notes</A></H3></B>
+
+<P><B>version 1.6 (Nov 1998)</B>
+Minor release.  Fixed a bug in NLEndpoint::IsDataPending() reported 
+by Chris Tate.</P>
+<P><B>version 1.5 (Sep 1998)</B>
+Minor release.  Contains bug fixes, and removes the requirement of a C++ std library due to popular
+demand.  Now links under BeOS using the 64k linker.  Minor API changes.
+</P>
+<P><B>version 1.2 (Dec 1997)</B>
+Minor release.  Contains minor bug fixes and cleanup, and adds support for 
+Linux under g++ 2.7.x and for the Sun SPARCWorks compiler using the ObjectSpace 
+C++ standard library.</P>
+
+<P><B>version 1.0 (Nov 1997)</B>
+Major release.
+Many bug fixes from the beta.  Ported to Solaris.  New directory layout and makefiles.</P>
+
+<P><B>version 0.9b1 (Aug 1997)</B>
+Major release.
+First release, public beta.  NLEndpoint, NLAddress, NLPacket, NLException classes.
+Unoptimized.  Few examples.  BeOS support only.</P>
+</HTML>
