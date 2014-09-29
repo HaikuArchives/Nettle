@@ -3,8 +3,8 @@ CC=cc
 CCFLAGS= -g $(INCLUDE)
 CPPFLAGS= -g $(INCLUDE) -fpermissive
 PLATOBJS=NLBeOSImpl.o
-LINKLIBS=-lnettle -lnetwork
-AR=mkdir -p ../lib && ar r
+LINKLIBS=-lnettle
+AR=mkdir -p ../lib && gcc -lnetwork -shared -o
 
 .SUFFIXES: .cpp .o .c 
 

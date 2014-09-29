@@ -5,7 +5,7 @@
 
 INCLUDE=-I../include
 
-LIBS=../lib/libnettle.a
+LIBS=../lib/libnettle.so
 
 include ../make.incl
 

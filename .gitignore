@@ -1,4 +1,6 @@
 *.o
-examples/*
+examples/echod
+examples/server
+examples/tester
 lib/*
 make.incl

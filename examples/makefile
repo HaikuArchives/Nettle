@@ -6,7 +6,7 @@ INCLUDE=-I. -I../include
 include ../make.incl
 LDFLAGS= -L../lib
 
-LIBS=../lib/libnettle.a
+LIBS=../lib/libnettle.so
 
 all: tester echod server
 
