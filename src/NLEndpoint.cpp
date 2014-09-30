@@ -7,8 +7,11 @@
 #include "NLEndpoint.h"
 #include "NLException.h"
 #include "otto_ptr"
-#if defined(__HAIKU__)
+
 #include <sys/select.h>
+
+#ifdef LINUX
+#  include <unistd.h>
 #endif
 
 extern "C" int closesocket(int fd);  // for portability

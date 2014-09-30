@@ -9,6 +9,13 @@
 #include <netdb.h>
 #include <stdio.h>
 
+#ifdef LINUX
+#  include <unistd.h>
+#  include <sys/socket.h>
+#  include <netinet/in.h>
+#  include <arpa/inet.h>
+#endif
+
 
 NLAddress::NLAddress(const char *hostname , unsigned short port )
 {

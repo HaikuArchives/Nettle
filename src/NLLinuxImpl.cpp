@@ -1,4 +1,4 @@
-/
+//
 // NLLinuxImpl.cpp
 //
 // Copyright 1997 by Howard Berkey
@@ -22,5 +22,5 @@ int NLEndpoint::setNonBlock(bool on)
 {
  	int ltr = (int)( on ? O_NONBLOCK : 0);
         return fcntl(sol_socket, F_SETFL, ltr);
-}  
+}
 

@@ -11,14 +11,15 @@ include ../make.incl
 
 OBJS=NLDebug.o NLPacket.o NLEndpoint.o NLAddress.o $(PLATOBJS)
 
-all: libs 
+all: libs
 
-libs: $(OBJS) 
+libs: $(OBJS)
 	rm -f $(LIBS)
-	$(AR) $(LIBS)  $(OBJS)
+	mkdir -p ../lib
+	$(LINK) $(LIBS) $(OBJS)
 
 clean:
-	rm -f $(LIBS) $(OBJS) 
+	rm -f $(LIBS) $(OBJS)
 
 clobber: clean
-	rm -f *~ *.xSYM *.dbg 
+	rm -f *~ *.xSYM *.dbg

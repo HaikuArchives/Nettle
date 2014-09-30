@@ -1,16 +1,15 @@
 CPP=g++
 CC=gcc
-CCFLAGS= -g -D_REENTRANT -DLINUX $(INCLUDE)
-CPPFLAGS= -g -fhandle-exceptions -Wall -D_REENTRANT -DLINUX $(INCLUDE)
-LINKLIBS= -lnettle -lnsl 
+CCFLAGS= -O2 -D_REENTRANT -DLINUX $(INCLUDE)
+CPPFLAGS= -fpermissive -fPIC -Wno-write-strings -D_REENTRANT -DLINUX $(INCLUDE)
 PLATOBJS= NLLinuxImpl.o
-AR=ar -q
+LINKLIBS= -lnettle
+LINK=gcc -lnsl -shared -O1 -o
 
-.SUFFIXES: .cpp .o .c 
+.SUFFIXES: .cpp .o .c
 
 .cpp.o:
 	$(CPP)  -c $(CPPFLAGS) $<
 
 .c.o:
 	$(CC)  -c $(CCFLAGS) $<
-	

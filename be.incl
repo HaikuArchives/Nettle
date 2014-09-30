@@ -1,12 +1,12 @@
 CPP=c++
 CC=cc
-CCFLAGS= -g $(INCLUDE)
-CPPFLAGS= -g $(INCLUDE) -fpermissive
+CCFLAGS= -O2 $(INCLUDE)
+CPPFLAGS= -fpermissive -O2 $(INCLUDE)
 PLATOBJS=NLBeOSImpl.o
 LINKLIBS=-lnettle
-AR=mkdir -p ../lib && gcc -lnetwork -shared -o
+LINK=gcc -lnetwork -shared -O1 -o
 
-.SUFFIXES: .cpp .o .c 
+.SUFFIXES: .cpp .o .c
 
 .cpp.o:
 	$(CPP)  -c $(CPPFLAGS) $<
