@@ -8,9 +8,6 @@
 #include "NLException.h"
 #include <netdb.h>
 #include <stdio.h>
-#if defined(IRIX) || defined(SOLARIS)  
-#include <arpa/inet.h>
-#endif
 
 
 NLAddress::NLAddress(const char *hostname , unsigned short port )
@@ -57,9 +54,9 @@ void NLAddress::set(const char *hostname , unsigned short port )
 {
 	struct hostent *he;
 	in_addr ia;
-	
+
 	ia.s_addr = addr_any;
-	
+
 	if(hostname !=  0)
 	{
 		ia.s_addr = inet_addr(hostname);
@@ -77,7 +74,7 @@ void NLAddress::set(const char *hostname , unsigned short port )
 			}
 		}
 	}
-	
+
 	p_set(ia, port);
 }
 
@@ -106,14 +103,14 @@ void NLAddress::set(NLAddress::e_addr addr, int port )
 
 
 
-	
+
 void NLAddress::get(char *hostname , unsigned short *port ) const
 {
 	char *abuf;
 	if(port != 0)
 		*port = ntohs(m_sa.sin_port);
 	if(hostname != 0)
-	{	
+	{
 		abuf = inet_ntoa(m_sa.sin_addr);
 		if(abuf != 0)
 		{
@@ -135,7 +132,7 @@ void NLAddress::get(in_addr &addr, unsigned short *port ) const
 {
 	if(port != 0)
 		*port = ntohs(m_sa.sin_port);
-		
+
 	addr = m_sa.sin_addr;
 }
 
