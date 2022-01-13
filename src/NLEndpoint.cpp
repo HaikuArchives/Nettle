@@ -9,10 +9,7 @@
 #include "otto_ptr"
 
 #include <sys/select.h>
-
-#ifdef LINUX
-#  include <unistd.h>
-#endif
+# include <unistd.h>
 
 extern "C" int closesocket(int fd);  // for portability
 

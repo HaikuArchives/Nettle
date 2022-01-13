@@ -7,14 +7,12 @@
 #include "NLAddress.h"
 #include "NLException.h"
 #include <netdb.h>
-#include <stdio.h>
+#include <cstdio>
 
-#ifdef LINUX
-#  include <unistd.h>
-#  include <sys/socket.h>
-#  include <netinet/in.h>
-#  include <arpa/inet.h>
-#endif
+# include <unistd.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
 
 
 NLAddress::NLAddress(const char *hostname , unsigned short port )
